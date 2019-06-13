@@ -1,53 +1,56 @@
 # data reading and make it tidy
 
-# ----------------------
-# 2009年政治家調査（衆議院）
-# codebook
-# ID: 通し番号
-# oldID: 旧バージョンの通し番号（いらないかも？）
-# NAME: 候補者名
-# YOMI: よみがな
-# RESPONSE: 回答状況 1なら有効回答あり，2なら有効回答なし
-# PREFEC: 候補者の選挙区都道府県？1～47が北海道から沖縄まで割り振られている。対応させるベクトルがあると良いが，今は不要
-# DISTINCT: 都道府県内の選挙区番号，非該当は"・"で処理されている。
-# INCUMB: 1:新人, 2:元職（現職の誤字？）, 3:前職
-# TERM: 当選回数0~16
-# PARTY: 1. 自民党， 2.民主党，3. 公明党，4. 共産党，5. 社民党，6. 国民新党，7. みんなの党，
-#        8. 新党日本，9. 新党大地，10. 改革クラブ，11. 諸派，12. 無所属
-# SEX: 1. MAN, 2. WOMAN
-# AGE: 
-# RESULT: 選挙結果　1. 小選挙区で当選，2. 比例区単独で当選，3. 比例区で復活当選，4. 落選
-# 
-# 2012年政治家調査（衆議院）
-# 主な変更点
-# PREFEC: 比例区単独候補者は66
-# DISTINCT: 比例区単独候補者は66
-# PR: 比例区ダミー 0. 選挙区候補, 1. 比例区単独候補
-# PRBLOCK: 51. 北海道 52. 東北 53. 北関東 54. 南関東 55. 東京 56. 北陸・信越  57. 東海 58. 近畿 59. 中国 60. 四国 61. 九州 66. 非該当（小選挙区単独候補）
-# PARTY: 公認政党　1. 民主党　2. 自民党　3. 未来の党　4. 公明党　5. 日本維新の会　6. 共産党　7. みんなの党　
-#                  8. 社民党　9. 新党大地　10. 国民新党　11. 新党日本　12. 新党改革　13. 諸派　14. 無所属
-# RESULT: 一部コーディングが変更に。0. 落選 1. 小選挙区で当選 2. 比例区で復活当選 3. 比例区単独で当選
-#
-# 2014年政治家調査（衆議院）
-# PARTY: 1. 自民党 2. 民主党 3. 維新の党 4. 公明党 5. 次世代の党 6. 共産党 7. 生活の党 8. 社民党 9. 新党改革 
-#        10. 幸福実現党 11. 支持政党なし 12. 諸派 13. 無所属
-#
-#
-#
+na_code <- c("", "NA", 66, 99, 999, "・")
 
-
-
-dat2009 <- seijika_syu_link$`2009_kouho` %>% read_csv(locale=locale(encoding="CP932"), #候補者名にJISが入ってる。
+dat_syu_2009 <- seijika_syu_link$`2009_syu` %>% read_csv(locale=locale(encoding="CP932"), #候補者名にJISが入ってる。
                                                       na = c("", "NA", 99, "・") # 99 = NA
                                                       )
-names(dat2009)
-dat2009$NAME # すごい，本当に候補者名全員の名前載ってる...
-dat2009$Q12 # 
-write_csv(tibble(names=names(dat2009)), "2009_names.csv")
+names(dat_syu_2009)
+dat_syu_2009$NAME # すごい，本当に候補者名全員の名前載ってる...
+dat_syu_2009$Q12 # 
+write_csv(tibble(names=names(dat_syu_2009)), "name_csv/2009_names.csv")
 
-dat2012 <- seijika_syu_link$`2012_kouho` %>% read_csv(locale=locale(encoding="CP932"),  na = c("", "NA", 99, 999, "・"))
-dat2012$Q2_3
-write_csv(tibble(names=names(dat2012)), "2012_names.csv")
+dat_syu_2012 <- seijika_syu_link$`2012_syu` %>% read_csv(locale=locale(encoding="CP932"), na = na_code)
+write_csv(tibble(names=names(dat_syu_2012)), "name_csv/2012_names.csv")
 
-dat2014 <- seijika_syu_link$`2014_kouho` %>% read_csv(locale=locale(encoding="CP932"),  na = c("", "NA", 99, 999, "・"))
-write_csv(tibble(names=names(dat2014)), "2014_names.csv")
+dat_syu_2014 <- seijika_syu_link$`2014_syu` %>% read_csv(locale=locale(encoding="CP932"), na = na_code)
+write_csv(tibble(names=names(dat_syu_2014)), "name_csv/2014_names.csv")
+
+dat_syu_2017 <- seijika_syu_link$`2017_syu` %>% read_csv(locale=locale(encoding="CP932"), na = na_code)
+write_csv(tibble(names=names(dat_syu_2017)), "name_csv/2017_names.csv")
+
+
+# analize questionnaire
+qtable <- read_csv("tables/questionnaire_table.csv") # UTF-8で作成しているので，localeオプションは不要
+qtable
+
+qtable_key <- read_csv("tables/questionnaire_table_match.csv")
+qtable_key_long <- qtable_key %>% 
+  select(common_id, `2009_id`, `2012_id`, `2014_id`, `2017_id`) %>% 
+  gather(key = year, value = sub_id, -common_id) %>% 
+  mutate(year = as.numeric(str_extract(year, "[0-9][0-9][0-9][0-9]")))
+
+# data merge
+for(y in c(2009, 2012, 2014, 2017)){
+  sub_key <- qtable_key_long %>% filter(year == y)
+  sub_table <- get(paste("dat",y,sep="")) %>% select()
+}
+
+
+
+# 有権者データ
+
+dat_ykn_2009_to_2010 <- yukensya_link$`2009_to_2010` %>% read_sav # SPSS file is read via haven pkg
+write_csv(tibble(names=names(dat_ykn_2009_to_2010)), "name_csv/2009_to_2010_names.csv")
+common_item_to_giin_2009 <- c("Q010700", "Q013801", "Q013802", "Q013803", "Q013804", "Q013805", "Q013806", "Q013807", "Q013808", "Q013809", "Q013810", "Q013811", "Q013812", "Q013813", "Q013814", "Q013815", "Q013816", "Q013817", "Q013818", "Q013819", "Q013820", "Q014001", "Q014002", "Q014003")
+common_item_to_giin_2010 <- c("Q020601", "Q020602" , "Q020603", "Q022701", "Q022702", "Q022703", "Q022704", "Q022705", "Q022706", "Q022707", "Q022708", "Q022709", "Q022710", "Q022711", "Q022712", "Q022713", "Q022714", "Q022715", "Q022801","Q022802","Q022803")
+dat_ykn_2009 <- dat_ykn_2009_to_2010 %>% select(ID, PREF, CITY, HORDIST, common_item_to_giin_2009)
+dat_ykn_2010 <- dat_ykn_2009_to_2010 %>% select(ID, PREF, CITY, HORDIST, common_item_to_giin_2010)
+
+
+dat_ykn_2012_to_2013 <- yukensya_link$`2012_to_2013` %>% read_sav 
+write_csv(tibble(names=names(dat_ykn_2012_to_2013)), "name_csv/2012_to_2013_names.csv")
+
+
+dat_ykn_2014_to_2016 <- yukensya_link$`2014_to_2016` %>% read_csv(locale=locale(encoding="CP932"), na = na_code)
+write_csv(tibble(names=names(dat_ykn_2014_to_2016)), "name_csv/2014_to_2016_names.csv")
