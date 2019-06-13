@@ -32,7 +32,3 @@ yukensya_link <- list("2003_to_2005" = "http://www.masaki.j.u-tokyo.ac.jp/utas/u
                       "2014_to_2016" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2014_2016UTASV20161004.csv"
                       )
 
-
-test <- seijika_csv_link[[1]] %>% read_csv
-
-names(test)
