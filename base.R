@@ -5,6 +5,16 @@
 
 library(tidyverse)
 
+# コードブックリンク
+codebook_link <- list("2009_syu_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2009UTASP_codebook20150910.pdf",
+                      "2010_san_giin_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2010ates_codebook101105.docx", 
+                      "2012_syu_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2012UTASP_codebook20150910.pdf",
+                      "2013_san__giin_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2013UTASP_codebook131128.doc",
+                      "2014_syu_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2014UTASP_codebook20150910.pdf",
+                      "2016_san_giin_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2016UTASP_codebook20161010.docx",
+                      "2017_syu_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2017UTASP_codebook20180628.docx"
+                      )
+
 # 政治家調査
 seijika_syu_link_before2009 <- list("2003_giin" = "http://www.masaki.j.u-tokyo.ac.jp/utas/ates1v1.csv",
                      "2003_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/ates2v1.csv",
