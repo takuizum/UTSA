@@ -28,7 +28,7 @@ seigika_san_link <- list("2004_giin_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/
                          "2016_giin_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2016UTASP20161010.csv"
                           )
 
-seijika_csv_link <- list("2009_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2009UTASP20150910.csv", 
+seijika_syu_link <- list("2009_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2009UTASP20150910.csv", 
                          "2012_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2012UTASP20150910.csv",
                          "2014_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2014UTASP20150910.csv",
                          "2017_kouho" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2017UTASP20180628.csv"
