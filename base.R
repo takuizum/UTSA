@@ -17,7 +17,6 @@ codebook_link <- list("2009_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2009U
                       "2009_to_2010_ykn" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2009_2010utas_codebook.docx",
                       "2012_to_2013_ykn" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2012_2013UTASV_codebook20131129.docx", # SPSS
                       "2014_to_2016_ykn" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2014_2016UTASV_codebook20161004.docx"
-                      
                       )
 
 # 政治家調査
