@@ -135,6 +135,7 @@ dev.off()
 # FA
 
 fafit_after_2009_rev <- mat_after_2009_rev %>% fa(nfactors = 4)
+mat_after_2009_rev %>% factanal(factors = 4, na.action = mean)
 ncol(mat_ykn_2009)
 fit_ykn_2009 <- mat_ykn_2009 %>% .[colSums(., na.rm = T) != 0, ] %>% mirt(mirt.model("F1 = 1-23"), technical = list(removeEmptyRows = T))
 
