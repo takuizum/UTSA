@@ -21,9 +21,9 @@ codebook_link <- list("2009_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2009U
 
 # 政治家調査
 seijika_syu_link_before2009 <- list("2003_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/ates1v1.csv",
-                     "2003_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/ates2v1.csv",
-                     "2005_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2005ates0801171.sav"
-                     )
+                                    "2003_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/ates2v1.csv",
+                                    "2005_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2005ates0801171.sav"
+                                    )
 
 seigika_san_link <- list("2004_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2004ates0801172.sav",
                          "2007_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2007ates071221.sav", 
