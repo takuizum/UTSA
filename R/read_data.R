@@ -99,6 +99,7 @@ for(s in survey_type){
   else
     dat_after_2009 <- full_join(dat_after_2009, sub_dat)
 }
+rm(sub_dat)
 
 # chack the data
 dat_after_2009 %>% str

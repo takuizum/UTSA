@@ -1,8 +1,7 @@
 # マージした行列を使って項目分析
-
 names(dat_after_2009)
 
-# histgram
+# histgram----
 hist_after_2009 <- dat_after_2009 %>% 
   gather(key = item, value = response, -ID, -NAME, -PARTY, -SURVEY, -LENGTH) %>% 
   ggplot(aes(x = response, group = item, fill = item, colour = response))+
@@ -13,7 +12,7 @@ hist_after_2009 <- dat_after_2009 %>%
 dat_after_2009 %>% select(-ID, -NAME, -PARTY, -SURVEY, -LENGTH) %>% map(table)
 dat_after_2009 %>% select(-ID, -NAME, -PARTY, -SURVEY, -LENGTH) %>% map(unique) %>% map(length) %>% `==`(6) %>% all # 欠測値を含めて全てのカテゴリが6
 
-# item analysis
+# item analysis----
 nrow(dat_after_2009)
 tracedat_after_2009 <- dat_after_2009 %>% select(starts_with("q"), LENGTH) %>%  # extract 5 categories response data
   mutate(total = (rowSums(., na.rm = T) - LENGTH)/(LENGTH*5)*100) %>%  # 相対的な得点にするため，0～100の間に抑える
@@ -22,9 +21,10 @@ tracedat_after_2009 <- dat_after_2009 %>% select(starts_with("q"), LENGTH) %>%  
   mutate(level = cut2(x = total, g = 7)) %>%  # split by cut points
   gather(key = item, value = response, -level, -total) %>% 
   group_by(item, level) 
-# basic statistics
-tracedat_after_2009 %>% summarise(mean = mean(response, na.rm = T), sd = sd(response, na.rm = T))
-# trace plot
+# basic statistics----
+tracedat_after_2009 %>% 
+  summarise(mean = mean(response, na.rm = T), sd = sd(response, na.rm = T))
+# trace plot----
 traceplot_after_2009 <- tracedat_after_2009 %>% 
   filter(!is.na(response)) %>%  # na omit
   count(response, name = "count") %>%
@@ -35,7 +35,7 @@ traceplot_after_2009 <- tracedat_after_2009 %>%
   facet_wrap(.~item, ncol = 5)+
   theme(legend.position = "none", axis.text.x = element_text(angle = -20))# themeをいじって，もう少し整形する必要がある。
 ggsave(plot = traceplot_after_2009, "graphics/traceplot_after_2009.png", height = 20, width = 10)
-# item-test correlation
+# item-test correlation----
 itcor_after_2009 <- dat_after_2009 %>% select(starts_with("q")) %>%  # extract 5 categories response data
   mutate(total = rowSums(., na.rm = T)) %>% map_dbl(.f = cor ,y = .$total, use = "p")
 
@@ -57,9 +57,9 @@ while(!all(itcor_after_2009_rev > 0)){
     mutate(total = rowSums(., na.rm = T)) %>% map_dbl(.f = cor ,y = .$total, use = "p")
 }
 
-cbind(itcor_after_2009, itcor_after_2009_rev)
+# cbind(itcor_after_2009, itcor_after_2009_rev)
 
-# dimensionality check
+# dimensionality check----
 mat_after_2009_rev <- dat_after_2009_rev %>% select(starts_with("q")) %>% as.matrix
 mat_after_2009_rev %>% colSums(na.rm = T)
 # Dosen't work
@@ -75,19 +75,20 @@ for(s in survey_type){
 }
 dev.off()
 
-
-# FA
-
+# core setting
+mirtCluster(4)
+#mirtCluster(remove = T)
+# FA----
 fafit_after_2009_rev <- mat_after_2009_rev %>% fa(nfactors = 4)
 mat_after_2009_rev %>% cor(use = "p") #%>% factanal(factors = 4))
+# FIFA
+fafit_after_2009 <- mat_after_2009_rev %>% 
+  mirt(4, technical = list(removeEmptyRows = TRUE))
 
-
-# MIRT (FULL INFORMATION FACTOR ANALYSIS)
+# MIRT (FULL INFORMATION FACTOR ANALYSIS)----
 ncol(mat_after_2009_rev) # of items
 s
 # UNIDIM IRT with Single Group
-mirtCluster(4)
-#mirtCluster(remove = T)
 fit_after_2009 <- mat_after_2009_rev %>% 
   mirt(mirt.model("F1 = 1-85"), technical = list(removeEmptyRows = TRUE))
 extract.mirt(fit_after_2009, "time")
