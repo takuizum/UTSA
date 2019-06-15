@@ -140,7 +140,7 @@ mat_after_2009_rev %>% cor(use = "p") #%>% factanal(factors = 4))
 
 # MIRT (FULL INFORMATION FACTOR ANALYSIS)
 ncol(mat_after_2009_rev) # of items
-
+s
 # UNIDIM IRT with Single Group
 fit_after_2009 <- mat_after_2009_rev %>% 
   mirt(mirt.model("F1 = 1-85"), technical = list(removeEmptyRows = TRUE))
@@ -151,7 +151,8 @@ pars1 <- coef(fit_after_2009, IRTpars = T) # negative discrimi paramter in some 
 # UNIDIM IRT with Multiple Group
 const <- c("free_var", "free_means", colnames(mat_after_2009_rev))
 fit_mg_after_2009 <- mat_after_2009_rev %>% # .[colSums(., na.rm = T) != 0, ] %>% 
-  multipleGroup(group = dat_after_2009_rev$SURVEY, invariance = const)
+  multipleGroup(model = mirt.model("F1 = 1-85"), group = dat_after_2009_rev$SURVEY, invariance = const,
+                technical = list(removeEmptyRows = TRUE))
 
 
 
