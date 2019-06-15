@@ -1,0 +1,4 @@
+# git comitte error
+
+git config --global user.email "sep10.taku.izum@gmail.com"
+git config --global user.name "takuizum@cloud"
