@@ -2,5 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-/codebook 
-.html
+/codebook/
+*.html
