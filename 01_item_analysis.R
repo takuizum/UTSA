@@ -135,9 +135,25 @@ dev.off()
 # FA
 
 fafit_after_2009_rev <- mat_after_2009_rev %>% fa(nfactors = 4)
-mat_after_2009_rev %>% factanal(factors = 4, na.action = mean)
-ncol(mat_ykn_2009)
-fit_ykn_2009 <- mat_ykn_2009 %>% .[colSums(., na.rm = T) != 0, ] %>% mirt(mirt.model("F1 = 1-23"), technical = list(removeEmptyRows = T))
+mat_after_2009_rev %>% cor(use = "p") #%>% factanal(factors = 4))
 
-summary(fit_ykn_2009)
-coef(fit_ykn_2009, IRTpars = T)
+
+# MIRT (FULL INFORMATION FACTOR ANALYSIS)
+ncol(mat_after_2009_rev) # of items
+
+# UNIDIM IRT with Single Group
+fit_after_2009 <- mat_after_2009_rev %>% 
+  mirt(mirt.model("F1 = 1-85"), technical = list(removeEmptyRows = TRUE))
+fit_after_2009
+summary(fit_after_2009)
+pars1 <- coef(fit_after_2009, IRTpars = T) # negative discrimi paramter in some items.
+
+# UNIDIM IRT with Multiple Group
+const <- c("free_var", "free_means", colnames(mat_after_2009_rev))
+fit_mg_after_2009 <- mat_after_2009_rev %>% # .[colSums(., na.rm = T) != 0, ] %>% 
+  multipleGroup(group = dat_after_2009_rev$SURVEY, invariance = const)
+
+
+
+
+
