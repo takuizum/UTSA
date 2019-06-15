@@ -142,8 +142,11 @@ mat_after_2009_rev %>% cor(use = "p") #%>% factanal(factors = 4))
 ncol(mat_after_2009_rev) # of items
 s
 # UNIDIM IRT with Single Group
+mirtCluster(4)
+#mirtCluster(remove = T)
 fit_after_2009 <- mat_after_2009_rev %>% 
   mirt(mirt.model("F1 = 1-85"), technical = list(removeEmptyRows = TRUE))
+extract.mirt(fit_after_2009, "time")
 fit_after_2009
 summary(fit_after_2009)
 pars1 <- coef(fit_after_2009, IRTpars = T) # negative discrimi paramter in some items.
@@ -169,7 +172,7 @@ fit_mg_after_2009 <- mat_after_2009_rev %>% # .[colSums(., na.rm = T) != 0, ] %>
                 accelarete = "squarem",
                 technical = list(removeEmptyRows = TRUE, 
                                  NCYCLES = 1000))
+plot(fit_mg_after_2009, type = "trace")
 plot(fit_mg_after_2009, type = "empiricalhist")
-
-pars2 <- coef(fit_mg_after_2009, IRTpars = F)
-
+pars2 <- coef(fit_mg_after_2009, IRTpars = T)
+extract.mirt(fit_mg_after_2009, "Prior")
