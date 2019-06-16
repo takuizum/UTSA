@@ -48,7 +48,7 @@ mat_ykn_2009 %>% cor(use = "p") %>% eigen %$% values %>% plot(xlab = "component"
 # FA
 mat_ykn_2009 %>% fa(nfactors = 4)
 ncol(mat_ykn_2009)
-fit_ykn_2009 <- mat_ykn_2009 %>% .[colSums(., na.rm = T) != 0, ] %>% mirt(mirt.model("F1 = 1-23"), technical = list(removeEmptyRows = T))
+fit_ykn_2009 <- mat_ykn_2009 %>% as_tibble %>% mirt(mirt.model("F1 = 1-23"), technical = list(removeEmptyRows = T))
 
 summary(fit_ykn_2009)
 coef(fit_ykn_2009, IRTpars = T)

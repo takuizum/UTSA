@@ -84,6 +84,8 @@ mat_after_2009_rev %>% cor(use = "p") #%>% factanal(factors = 4))
 # FIFA
 fafit_after_2009 <- mat_after_2009_rev %>% 
   mirt(4, technical = list(removeEmptyRows = TRUE))
+coef(fafit_after_2009)
+floadings <- extract.mirt(fafit_after_2009, "F")
 
 # MIRT (FULL INFORMATION FACTOR ANALYSIS)----
 ncol(mat_after_2009_rev) # of items
@@ -112,7 +114,7 @@ fit_mg_after_2009 <- mat_after_2009_rev %>% # .[colSums(., na.rm = T) != 0, ] %>
                 group = dat_after_2009_rev$SURVEY %>% factor(levels = faclev), 
                 invariance = const,
                 optimizer = "BFGS", # "NR",
-                dentype = "empiricalhist",
+                dentype = "EHW",
                 GenRandomPars = TRUE, # 初期値の計算で、識別力に負の値が生成されるらしい
                 accelarete = "squarem",
                 technical = list(removeEmptyRows = TRUE, 
