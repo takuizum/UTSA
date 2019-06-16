@@ -8,13 +8,103 @@
     - mirt専用のモデルシンタックスを書き込むことで、様々な制約・設定を書くことができる。公式文書の言い方を借りれば、ユーザーが任意の確認的なモデルを書き込むことができる。
 - `multipleGroup`  
     - 多母集団モデル推定用の関数
+- `mixedmirt`
+    - 受検者と項目の両方のレベルで、固定効果とランダム（変量）効果を条件付けた＝混合モデルのIRTモデルを扱うことができる関数。モデルシンタックスも少し特殊。下記の`mirtCluster`で高速化できる。
 - `extract.mirt`
     - mirt系のS4クラスオブジェクトからいろんな値を引っ張ってきてくれる関数。`@`でも可
 - `mirtCluster`
     - `parallel::makeCluster()`を呼び出して、parallel computingを実行してくれる。
 
 ## `mirt`および`multipleGroup`
-
+後述するモデルシンタックスを`mirt.model`によって記述し、そのモデルを元にデータから特定のパラメタを推定する。推定に用いる計算アルゴリズムや収束基準などをかなり詳細に設定できる。
+```{R}
+fit1 <- mirt(data, 
+             model, 
+             itemtype,...
+)
+```
+### 引数(arguments)について
+- `data` 反応データ。`matrix`か`data.frame`、`tibble`でもいける。欠測値は`NA`でコーディングしておく。全回答が`NA`となる受検者行が存在する場合には、`technical = list(removeEmptyRows = T)`を指定する。
+- `model` 後述するモデルシンタックス。探索的な完全情報項目因子分析を実行したい場合には、因子数に一致する単なるnumericを与えておけば良い。
+- `itemtype` 項目単位で適用するIRTモデルを指定する。デフォルトの `NULL`の場合には自動的に`2PL`か`graded`が与えられる。
+    - `Rasch` ラッシュモデル。1PLとも。
+    - `2PL`, `3PL`, `3PLu`, `4PL` 一般的な2~4パラモデル。`u`は上方漸近線のみを推定するモデル（珍しい！！）
+    - `graded` Samejimaの段階反応モデル
+    - `grsm`, `grsmIRT` Graded Rating Scele Modelまたの名をModified Graded Response Modelとも。カテゴリ境界パラメタ間に等値制約を課したモデル。`IRT`がつく方は、一般的なIRTパラメトリゼーションであり、一次元モデル限定で使える。
+    - `gpcm`, `gpcmIRT` 一般化部分採点モデル。スコアリング行列は`gpcm_mats`で与える。
+    - `rsm` 評定尺度モデル。一次元モデル限定。
+    - `nominal` Bockの名義反応モデル
+    - `ideal` 2値データに対する理想点モデル
+    - `ggum` 一般化段階展開モデル。
+    - `sequential` 多次元連続反応モデル。Continuous Responseとは違う？
+    - `Tutz`
+    - `PC2PL`, `PC3PL` 2~3パラの部分補償型モデル
+    - `spline` スプライン反応モデル。
+    - `monopoly` 単調多項モデル。一次元モデルのみ対応。
+    - その他にも自分で好きなモデルを`createItem`で作れるらしい。
+- `guess` `upper` 上方漸近および下方漸近パラメタを固定して推定する。項目ごとに指定する。
+- `method` パラメタの推定アルゴリズム。`BL`以外は基本的にはEMアルゴリズムに基づく。
+    - `EM` 求積点を固定したEMアルゴリズム。Bok & Aitkin流のもっともベーシックな計算方法であり、一次元では効率的。求積点の数は`quadapts`で、事前分布の計算方法は`dentype`で指定できる。
+    - `QMCEM` `MCEM` （擬似）モンテカルロEMアルゴリズム。
+    - `MH-RM` メトロポリスヘイスティングス・ロビンモンロ。
+    - `SEM` 確率的EMアルゴリズム。
+    - `BL` Bock & Liebermanにより提案されたEMアルゴリズムに基づかない周辺最優推定法。
+- `accelerate` 
+    - `none`
+    - `Ramsay`
+    - `squarem`
+- `optimizer` M-stepにおける最適化計算の方法。
+    - `BFGS` Rの多変数最適化関数`optim`で使われる推定方法の一つ。同関数の他のoptimizerも使える。
+    - `nlminb` 
+    - `NR` 言わずと知れた二階偏微分まで使う多変数最適化。一般に反復回数が少ないが、複雑なモデルにおいては不安定になりがち。名義反応モデルとかでは非推奨。
+    - `NR1` `method = "MHRM"`にだけ使用できる。一回しかNewton-Rapthonを更新しない。
+    - `sonlp`
+    - `nloptr`
+- `SE` `TRUE`にすれば標準誤差を推定する。各パラメタの推定精度をチェックできるとともに、最尤推定値との差を利用して検定するWald検定にも使われる。
+- `SE.type` 標準誤差の推定方法。
+    - `Richardson`, `forward`, `central`
+    - `crossprod` `Louis`
+    - `sandwich`
+    - `sandwich.Louis`
+    - `Oakes` 
+    - `SEM` Supplemented EM。`accelerate = ~`でEMアルゴリズムの各ステップにおいて加速方法を指定した場合には使えない。
+    - `Fisher` 期待情報行列
+    - `complete` 完全データ行列のHessianに基づく。
+    - `MHRM` `method = "MHRM"`とした場合にだけ使える。近似的に観測情報行列を推定する。
+    - `numerical` `method = "BL"`とした時に利用できる。
+- `dentype` $\theta$ の事前分布の確率密度を計算する方法
+    - `Gaussian`
+    - `empiricalhist` `EH` EMアルゴリズムのEステップの副産物を利用して、経験的に事前分布の確率密度を推定する
+    - `empiricalhist_Woods` `EMW` 上記`EH`は確率密度がギザギザな形になりやすいため、それを補間する。極端な回答パタンが多い場合には`technical = list(zeroExtreme = TRUE)`が必要になるらしい。
+    - `Davidian-#` セミパラメトリックなDavidian curve。`#`はパラメタ数。一次元のIRTモデルでしか利用できず、求積点が121になる。
+- `quadapts` 一次元あたりの求積点の数。必ず2以上でなくてはならない。デフォルトでは次元数`nfact`に応じて可変的に指定される。
+```{R}
+switch(as.character(nfact), '1'=61, '2'=31, '3'=15, '4'=9, '5'=7, 3)
+```
+- `TOL` EMアルゴリズムおよびMH-RMの収束基準。デフォルトはEMアルゴリズムなら0.0001、MH-RMなら0.001である。もし`SE.type = "SEM"`ならば1e-5に、`dentype = "EM" or "EHW"`ならば3e-5に変更される。もし初期値だけでモデルを評価したい場合には`Nan`を、初期値だけで評価するが対数尤度が不要な場合には`NA`を与える。
+- `constrain` パラメタの等値制約を宣言する。モデルシンタックスで記述できるため、非推奨
+- `parprior` 項目パラメタの事前分布を宣言する。モデルシンタックスで記述できるため、非推奨
+- `pars`
+- `gpcm_mat` GPCMのスコアリング係数を与える行列。次元ごとに各カテゴリのスコアリングが異なる場合に使う。デフォルトは`seq(0, k, by = 1)`のように0から1ずつ増加させる。行で指定するのはカテゴリ数にあたる`k`の部分であり、列で指定するのは次元ごとの値。
+- `GenRandomPars` 論理型で指定し、初期値をランダムな値にするかどうかを決定する。時々、モデルフィットが悪いデータに対して有効。
+- `verbose` consoleに対数尤度を表示するかどうか。
+- `control` optimやnlminbに渡すオプション。M-stepの収束基準のデフォルトは`tol = TOL/1000`で決められている。`NR`の最大反復回数は`maxit`で指定する。
+- `technical` そのほかの細々とした設定。
+    - `NCYCLES` EMサイクルの最大回数。
+    - `MAXQUAD` 最大求積点の数。
+    - `theta_lim` 各次元の積分区間。デフォルトは+-6。
+    - `set.seed` 12345
+    - `warn` 推定中にwarningを表示するかどうか。
+    - `message` 推定中にmessageを表示するかどうか。
+    - `customK` 項目ごとに最大カテゴリ数を指定したベクトルを与えることができる。項目パラメタの推定ではなく因子得点の計算が目的である場合に使える。
+    - `removeEmptyRows` 反応データが全て`NA`の行を除くかどうか。
+    - `BURNIN`
+    - `SEMCYCLES`
+    - `MHDRAWS`
+    - 
+    
+    
+    
 
 ## モデルシンタックスの書き方
 
