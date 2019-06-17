@@ -188,3 +188,16 @@ numeric vector indicating which items to be used when plotting. Default is to us
 
 - `object` an object of class SingleGroupClass, MultipleGroupClass, or MixedClass
 - `object2` a second model estimated from any of the mirt package estimation methods
+
+### `mixedmirt`について
+受検者および項目の変動（共編量, covariates) を固定効果とランダム（変量）効果に分解して条件付けた拡張的なIRTモデルを扱うことができる関数。二値，多値のどちらにも対応しており，さらに多次元もいける。も固定効果のみをモデリングした場合は探索的なIRTに等しく，両方をモデリングしたものはマルチレベルIRTに等しい。
+
+#### arguments
+
+- `covdata` 受検者数 $\times$ Kの行列で，受検者レベルの固定効果とランダム効果の予測子。cov = covariates
+- `fixed`　一般化線形モデルを扱う関数`glm`のモデルシンタックスと類似している表記で，`~ hogehuga`と記述する。`covdata`か`itemdesign`のいずれか，もしくは両方から指定する。
+- `random`
+- `lr.fixed`
+- `lr.random`
+- `itemdesign`
+- `internal_constraints`
