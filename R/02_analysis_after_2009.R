@@ -89,16 +89,27 @@ floadings <- extract.mirt(fafit_after_2009, "F")
 
 # MIRT (FULL INFORMATION FACTOR ANALYSIS)----
 ncol(mat_after_2009_rev) # of items
-s
-# UNIDIM IRT with Single Group
+
+# UNIDIM IRT with Single Group----
+sgmodel <- mirt.model("F1 = 1-85
+                      PRIOR = (1-85, a1, lnorm,  0.0 , 2)
+                      PRIOR = (1-85, d1, norm,  -1.0 , 3)
+                      PRIOR = (1-85, d2, norm,  -0.5 , 3)
+                      PRIOR = (1-85, d3, norm,   0.5 , 3)
+                      PRIOR = (1-85, d4, norm,   1.0 , 3)
+                      ")
 fit_after_2009 <- mat_after_2009_rev %>% 
-  mirt(mirt.model("F1 = 1-85"), technical = list(removeEmptyRows = TRUE))
+  mirt(sgmodel, technical = list(removeEmptyRows = TRUE), dentype = "EHW", GenRandomPars = TRUE)
+save(file = "data/fit_after_2009.Rdata", list = "fit_after_2009")
+
 extract.mirt(fit_after_2009, "time")
+extract.mirt(fit_after_2009, "AIC")
+
 fit_after_2009
 summary(fit_after_2009)
 pars1 <- coef(fit_after_2009, IRTpars = T) # negative discrimi paramter in some items.
 
-# UNIDIM IRT with Multiple Group
+# UNIDIM IRT with Multiple Group----
 const <- c("free_var", "free_means", colnames(mat_after_2009_rev))
 faclev <- dat_after_2009_rev$SURVEY %>% unique %>% .[c(5:10, 1:4)]
 mgmodel <- mirt.model("F1 = 1-85
@@ -114,12 +125,50 @@ fit_mg_after_2009 <- mat_after_2009_rev %>% # .[colSums(., na.rm = T) != 0, ] %>
                 group = dat_after_2009_rev$SURVEY %>% factor(levels = faclev), 
                 invariance = const,
                 optimizer = "BFGS", # "NR",
-                dentype = "EHW",
+                dentype = "EH",
                 GenRandomPars = TRUE, # 初期値の計算で、識別力に負の値が生成されるらしい
-                accelarete = "squarem",
+                accelarete = "Ramsy",
                 technical = list(removeEmptyRows = TRUE, 
-                                 NCYCLES = 1000))
+                                 NCYCLES = 1000,
+                                 set.seed = 0204))
+load("data/fit_mg_after_2009.Rdata")
+fit_mg_after_2009
 plot(fit_mg_after_2009, type = "trace")
-plot(fit_mg_after_2009, type = "empiricalhist")
+plot(fit_mg_after_2009, type = "empiricalhist", npts = 30)
+# LL history
+# だいたい100回～400回くらいで完全におちきっている。
+extract.mirt(fit_mg_after_2009, what = "LLhistory") %>% `*`(-1) %>% plot(type = "l", ylim = c(508400, 509000))
+extract.mirt(fit_mg_after_2009, what = "AIC")
 pars2 <- coef(fit_mg_after_2009, IRTpars = T)
-extract.mirt(fit_mg_after_2009, "Prior")
+# model comparison
+extract.mirt(fit_after_2009, "AIC")
+extract.mirt(fit_mg_after_2009, what = "AIC")
+list(sg = fit_after_2009, mg = fit_mg_after_2009) %>% map_df(extract.mirt, what = "AIC")
+# population distribution
+pars2 %>% map_df(~.x$GroupPars) %>% t %>% `colnames<-`(c("mean", "var")) %>% as.data.frame %>% rownames_to_column(var = "survey") %>% mutate(sd = sqrt(var))
+
+# 識別力が低い項目を削除して再推定。
+item_names <- pars2$ykn_2009 %>% names %>% unlist
+remove_names <- numeric()
+for(j in 1:length(item_names)) if(pars2$ykn_2009[[j]] %>% .[1] < 0.1) remove_names <- c(remove_names, item_names[[j]])
+remove_names <- remove_names[-length(remove_names)]
+
+mgmodel2 <- mirt.model("F1 = 1-73
+                      PRIOR = (1-73, a1, lnorm,  0.0 , 2)
+                      PRIOR = (1-73, d1, norm,  -1.0 , 3)
+                      PRIOR = (1-73, d2, norm,  -0.5 , 3)
+                      PRIOR = (1-73, d3, norm,   0.5 , 3)
+                      PRIOR = (1-73, d4, norm,   1.0 , 3)
+                      ")
+
+fit_mg_after_2009_2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% as.matrix %>% 
+  multipleGroup(model = mgmodel2, 
+                group = dat_after_2009_rev$SURVEY %>% factor(levels = faclev), 
+                invariance = const,
+                optimizer = "BFGS", #
+                dentype = "EH",
+                GenRandomPars = TRUE, # 初期値の計算で、識別力に負の値が生成されるらしい
+                accelarete = "Ramsy",
+                technical = list(removeEmptyRows = TRUE, 
+                                 NCYCLES = 1000,
+                                 set.seed = 0204))
