@@ -10,6 +10,9 @@ library(haven)
 library(Hmisc)
 library(mirt)
 
+save(list = ls(), file = ".Rdata")
+load(".Rdata")
+
 # コードブックリンク
 codebook_link <- list("2009_syu" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2009UTASP_codebook20150910.pdf",
                       "2010_san" = "http://www.masaki.j.u-tokyo.ac.jp/utas/2010ates_codebook101105.docx", 
