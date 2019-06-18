@@ -172,3 +172,23 @@ fit_mg_after_2009_2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names
                 technical = list(removeEmptyRows = TRUE, 
                                  NCYCLES = 1000,
                                  set.seed = 0204))
+
+load("data/fit_mg_after_2009_2.Rdata")
+
+# population distribution pars
+coef(fit_mg_after_2009_2) %>% 
+  map_df(~.x$GroupPars) %>% t %>% 
+  `colnames<-`(c("mean", "var")) %>% 
+  as.data.frame %>% rownames_to_column(var = "survey") %>% 
+  mutate(sd = sqrt(var))
+
+
+# population distribution
+plt <- plot(fit_mg_after_2009_2, type = "empiricalhist", npts = 21, pch = 20, lwd = 3)
+tbl <- tibble(prob = plt$panel.args[[1]]$y,
+              theta = plt$panel.args[[1]]$x, 
+              group = plt$panel.args.common$groups)
+tbl %>% ggplot(aes(x = theta, y = prob, group = group, colour = group))+
+  geom_line()+
+  facet_wrap(group~., ncol = 6)
+ggsave(filename = "graphics/mg_after_2009.png", width = 10, height = 7)
