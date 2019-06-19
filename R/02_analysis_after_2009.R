@@ -79,11 +79,22 @@ dev.off()
 mirtCluster(4)
 #mirtCluster(remove = T)
 # FA----
-fafit_after_2009_rev <- mat_after_2009_rev %>% fa(nfactors = 4)
-mat_after_2009_rev %>% cor(use = "p") #%>% factanal(factors = 4))
+fafit_after_2009_rev <- mat_after_2009_rev %>% fa(nfactors = 4, missing = TRUE)
+dat %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
+
+dat <- mat_after_2009_rev %>% as_tibble
+write_csv(dat, path = "data/fadata.csv")
+dat %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x}) %>% cor %>% eigen %$% values %>% plot(type = "b",
+                                                                                                      xlab = "component", ylab = "eigen value", 
+                                                                                                      main = "scree plot")
+cor(dat) %>% eigen %$% values %>% plot(type = "b",
+                                       xlab = "component", ylab = "eigen value", 
+                                       main = "scree plot")
+
 # FIFA
 fafit_after_2009 <- mat_after_2009_rev %>% 
-  mirt(4, technical = list(removeEmptyRows = TRUE))
+  mirt(4, method, technical = list(removeEmptyRows = TRUE))
+load("data/fit_after_2009.Rdata")
 coef(fafit_after_2009)
 floadings <- extract.mirt(fafit_after_2009, "F")
 
@@ -192,3 +203,13 @@ tbl %>% ggplot(aes(x = theta, y = prob, group = group, colour = group))+
   geom_line()+
   facet_wrap(group~., ncol = 6)
 ggsave(filename = "graphics/mg_after_2009.png", width = 10, height = 7)
+
+
+# 項目削除したデータでもう一度因子分析
+# FA----
+fafit2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
+
+write_csv(dat, path = "data/fadata.csv")
+mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x}) %>% cor %>% eigen %$% values %>% plot(type = "b",
+                                                                                                       xlab = "component", ylab = "eigen value", 
+                                                                                                       main = "scree plot")
