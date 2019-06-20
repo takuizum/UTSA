@@ -7,3 +7,5 @@
 data/fafit.Rdata 
 data/fadata.csv
 # git rm --cached <FILE_NAME>
+*/.DS_Store
+.DS_Store
