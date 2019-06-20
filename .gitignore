@@ -4,4 +4,6 @@
 .Ruserdata
 /codebook/
 *.html
-data/fafit.Rdata
+data/fafit.Rdata 
+data/fafit.csv
+# git rm --cached <FILE_NAME>
