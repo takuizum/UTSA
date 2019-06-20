@@ -7,7 +7,7 @@ https://www.asahi.com/senkyo/asahitodai/asahitodai15nen/
  **東京大学谷口研究室・朝日新聞共同調査**   
 および  
  **東京大学蒲島＝谷口研究室・朝日新聞共同調査**  
-にもとづくものです。  
+にもとづくものです(UToky and Asahi Survey)。  
 http://www.masaki.j.u-tokyo.ac.jp/utas/utasindex.html
 
 データ，コードブックなどは許可なく**再配布が禁止**されているので注意してください。
@@ -52,6 +52,7 @@ http://www.masaki.j.u-tokyo.ac.jp/utas/utasindex.html
 - 2009年以降の衆議院議員候補調査
 - 2009年以降の有権者調査
 については共通IDの付与ができている。それ以外のデータは様子を見ておこなっていく予定である。
+[進捗状況について](PROGRESS.md)
 
 ## 分析の進捗状況について
 
