@@ -14,6 +14,10 @@
     - mirt系のS4クラスオブジェクトからいろんな値を引っ張ってきてくれる関数。`@`でも可
 - `mirtCluster`
     - `parallel::makeCluster()`を呼び出して、parallel computingを実行してくれる。
+- `createItem` `createGroup`
+    - ユーザー定義のモデルや母集団分布を作成してくれる関数。
+
+-----
 
 ## `mirt`および`multipleGroup`
 後述するモデルシンタックスを`mirt.model`によって記述し、そのモデルを元にデータから特定のパラメタを推定する。推定に用いる計算アルゴリズムや収束基準などをかなり詳細に設定できる。
@@ -130,6 +134,7 @@ values$est[values$name == a1 * values$item == "item1"] <- FALSE # 推定しな�
 fit2 <- mirt(dat, mod, pars = values)
 ```
     
+-----
 
 ## モデルシンタックスの書き方
 
@@ -161,6 +166,8 @@ START = (GROUP1, COV_11, 1.5)
 `FIXED``FREE` パラメタを初期値の時点で固定して、自由母数として推定したくない場合に使う。`FREE`はその逆。あんまり使わないと思われる。
 `NEXPLORE` 探索的な完全情報項目因子分析を実行したい時は、ここに因子数を与えてやればよい。だけれども、まず使わない。
 
+
+-----
 
 ## `SingleGroupClass`および`MultipleGroupClass`のmethod
 
@@ -214,7 +221,9 @@ numeric vector indicating which items to be used when plotting. Default is to us
 - `object` an object of class SingleGroupClass, MultipleGroupClass, or MixedClass
 - `object2` a second model estimated from any of the mirt package estimation methods
 
-### `mixedmirt`について
+-----
+
+## `mixedmirt`について
 受検者および項目の変動（共編量, covariates) を固定効果とランダム（変量）効果に分解して条件付けた拡張的なIRTモデルを扱うことができる関数。二値，多値のどちらにも対応しており，さらに多次元もいける。も固定効果のみをモデリングした場合は探索的なIRTに等しく，両方をモデリングしたものはマルチレベルIRTに等しい。
 
 #### arguments
@@ -226,3 +235,28 @@ numeric vector indicating which items to be used when plotting. Default is to us
 - `lr.random`
 - `itemdesign`
 - `internal_constraints`
+
+-----
+
+## `createItem`について
+
+ユーザーが独自に定義したモデルでパラメタ推定ができる。この関数で作ったオブジェクトを`mirt(..., cunsomItems = list(name = createdObject) )`に与えることで，推定可能。Qマトリックスの様なモデル外に必要になるデータは`customItemData`に投げるとよい。　
+
+- `name` 新しく作ったモデルの名前。既存のものとかぶったらどうなるのか？
+- `par` パラメタの初期値が入るベクトルの名前
+- `est` logical. 推定するかどうか。
+- `P` ICCを描画するための関数。ここが一番重要。全てのカテゴリについてのICCが書けなくてはならない。また，関数のインプットの順番が決まっているので注意。また，アウトプットは各列がカテゴリを表すmatrixでなくてはならないので最後は`cbind`で返すと良い。
+    1. par. 全ての項目パラメタ
+    2. Theta. 特性値
+    3. ncat. カテゴリ数
+    4. itemdata. その他必要なやつ
+- `gr`
+- `hss`
+- `gen`
+- `lbound`
+- `ubound`
+- `derivType`
+- `derivType.hss`
+- `bytecompile`
+
+
