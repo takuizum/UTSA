@@ -103,7 +103,32 @@ switch(as.character(nfact), '1'=61, '2'=31, '3'=15, '4'=9, '5'=7, 3)
     - `MHDRAWS`
     - 
     
-    
+### `mod2value`
+
+`mirt`により得られたモデルオブジェクトを`pars = values`の形で`mirt`に与えられるように変換してくれる関数。この関数で変換したオブジェクトは`data.frame`もしくは`list`の形で出力されており，以下の要素を持つ。
+
+- `group` 母集団のcharacter。`singleGroup`だと`"all"`となっている。
+- `item` 項目名。
+- `class` モデル。e.g. `"graded"`, `"2PL"`, `"GroupPars`...
+- `name` パラメタのcharacter. e.g. `"a1`, `"d1"`
+- `parnum` パラメタ番号。
+- `value` 推定された項目（もしくは母集団）パラメタの値が入っている。この値をいじることで任意の初期値から推定をはじめることができる。
+- `lbound` パラメタの下限値
+- `ubound` パラメタの上限値
+- `est` logical. パラメタを推定するかどうか。
+- `prior.type` 事前分布のcharacter
+- `prior1` 事前分布の超パラその1
+- `prior2` 事前分布の超パラその2
+
+たとえば，こんな使い方ができる。`est <- FALSE`にしてしまえば，固定推定が可能。
+
+```{R}
+fit <- mirt(dat, mod)
+values <- mod2values(fit) # valuesを引き出す。
+values$value[values$name == a1 * values$item == "item1"] <- 1 # item1のa1を1に固定
+values$est[values$name == a1 * values$item == "item1"] <- FALSE # 推定しないように指定する。
+fit2 <- mirt(dat, mod, pars = values)
+```
     
 
 ## モデルシンタックスの書き方
