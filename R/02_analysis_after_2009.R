@@ -80,7 +80,9 @@ mirtCluster(4)
 #mirtCluster(remove = T)
 # FA----
 fafit_after_2009_rev <- mat_after_2009_rev %>% fa(nfactors = 4, missing = TRUE)
-dat %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
+fafit <- dat %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
+fafit$communality %>% sort %>% plot
+fafit$communalities
 
 dat <- mat_after_2009_rev %>% as_tibble
 write_csv(dat, path = "data/fadata.csv")
@@ -158,13 +160,13 @@ list(sg = fit_after_2009, mg = fit_mg_after_2009) %>% map_df(extract.mirt, what 
 # population distribution
 pars2 %>% map_df(~.x$GroupPars) %>% t %>% `colnames<-`(c("mean", "var")) %>% as.data.frame %>% rownames_to_column(var = "survey") %>% mutate(sd = sqrt(var))
 
-# 識別力が低い項目を削除して再推定。
+# 識別力が低い項目を削除して再推定。-----
 item_names <- pars2$ykn_2009 %>% names %>% unlist
 remove_names <- numeric()
 for(j in 1:length(item_names)) if(pars2$ykn_2009[[j]] %>% .[1] < 0.1) remove_names <- c(remove_names, item_names[[j]])
 remove_names <- remove_names[-length(remove_names)]
 
-mgmodel2 <- mirt.model("F1 = 1-73
+mgmodel3 <- mirt.model("F1 = 1-73
                       PRIOR = (1-73, a1, lnorm,  0.0 , 2)
                       PRIOR = (1-73, d1, norm,  -1.0 , 3)
                       PRIOR = (1-73, d2, norm,  -0.5 , 3)
@@ -172,8 +174,8 @@ mgmodel2 <- mirt.model("F1 = 1-73
                       PRIOR = (1-73, d4, norm,   1.0 , 3)
                       ")
 
-fit_mg_after_2009_2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% as.matrix %>% 
-  multipleGroup(model = mgmodel2, 
+fit_mg_after_2009_3 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% as.matrix %>% 
+  multipleGroup(model = mgmodel3, 
                 group = dat_after_2009_rev$SURVEY %>% factor(levels = faclev), 
                 invariance = const,
                 optimizer = "BFGS", #
@@ -205,11 +207,48 @@ tbl %>% ggplot(aes(x = theta, y = prob, group = group, colour = group))+
 ggsave(filename = "graphics/mg_after_2009.png", width = 10, height = 7)
 
 
-# 項目削除したデータでもう一度因子分析
+# 項目削除したデータでもう一度因子分析----
 # FA----
-fafit2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
+fafit2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% 
+  map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
 
 write_csv(dat, path = "data/fadata.csv")
 mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x}) %>% cor %>% eigen %$% values %>% plot(type = "b",
                                                                                                        xlab = "component", ylab = "eigen value", 
                                                                                                        main = "scree plot")
+fafit2$communalities %>% sort %>% plot
+remove_names_fa <- names(fafit2$communalities)[fafit2$communalities < 0.1]
+
+# 尺度化対象となっている項目を確認----
+
+# IRTの識別力基準で除外した項目
+non_scaling_item <- qtable_key %>% filter(common_id %in% remove_names) %>% select(質問項目１, 質問項目２, 回答欄, 朝日項目名)
+View(non_scaling_item)
+# 因子分析の共通性が0.1以下という基準で除外したもの
+non_scaling_item2 <- qtable_key %>% filter(common_id %in% remove_names_fa) %>% select(質問項目１, 質問項目２, 回答欄, 朝日項目名)
+View(non_scaling_item2)
+
+pars2 <- coef(fit_mg_after_2009_2, IRTpars = T)
+
+as.list(remove_names_fa) %>% map(~pluck(pars2$ykn_2009, .x))
+# 全体的に識別力が低く，困難度もかなり広がってしまっている項目がいくつか見受けられる。
+
+# さらに項目を削除して再推定。----
+mgmodel2 <- mirt.model("F1 = 1-53
+                      PRIOR = (1-53, a1, lnorm,  0.0 , 2)
+                      PRIOR = (1-53, d1, norm,  -1.0 , 3)
+                      PRIOR = (1-53, d2, norm,  -0.5 , 3)
+                      PRIOR = (1-53, d3, norm,   0.5 , 3)
+                      PRIOR = (1-53, d4, norm,   1.0 , 3)
+                      ")
+fit_mg_after_2009_3 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names, -remove_names_fa) %>% as.matrix %>% 
+  multipleGroup(model = mgmodel2, 
+                group = dat_after_2009_rev$SURVEY %>% factor(levels = faclev), 
+                invariance = const,
+                optimizer = "BFGS", #
+                dentype = "EH",
+                GenRandomPars = TRUE, # 初期値の計算で、識別力に負の値が生成されるらしい
+                accelarete = "Ramsy",
+                technical = list(removeEmptyRows = TRUE, 
+                                 NCYCLES = 1000,
+                                 set.seed = 0204))
