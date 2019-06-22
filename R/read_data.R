@@ -105,3 +105,16 @@ rm(sub_dat)
 dat_after_2009 %>% str
 dat_after_2009 %>% names
 dat_after_2009 %>% group_by(SURVEY) %>% summarise(LEN = unique(LENGTH))
+
+# load Rdata
+ls() %>% str_subset(c("dat", "mat"))
+
+save(list = c(
+  ls() %>% str_subset(c("mat")),
+  ls() %>% str_subset(c("dat")),
+  "remove_names", "remove_names_fa", "faclev"
+  ), 
+  file = "data/data.Rdata")
+
+load(".Rdata")
+load("data/*.Rdata")

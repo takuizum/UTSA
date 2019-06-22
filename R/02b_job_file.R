@@ -1,7 +1,8 @@
 library(tidyverse)
 library(mirt)
 
-load(".Rdata")
+# load(".Rdata")
+load("data/data.Rdata")
 
 const <- c("free_var", "free_means", colnames(mat_after_2009_rev))
 faclev <- dat_after_2009_rev$SURVEY %>% unique %>% .[c(5:10, 1:4)]
