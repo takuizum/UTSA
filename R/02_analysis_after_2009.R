@@ -42,6 +42,7 @@ itcor_after_2009 <- dat_after_2009 %>% select(starts_with("q")) %>%  # extract 5
 # IT相関が負の項目は全て逆転処理をかける
 itcor_after_2009_rev <- itcor_after_2009
 dat_after_2009_rev <- dat_after_2009
+reverse_item <- NULL
 t <- 0
 while(!all(itcor_after_2009_rev > 0)){
   t <- t + 1
@@ -49,6 +50,7 @@ while(!all(itcor_after_2009_rev > 0)){
   for(i in itcor_after_2009_rev){
     if(i < 0){
       itemid <- names(itcor_after_2009_rev[itcor_after_2009_rev == i])
+      reverse_item <- c(reverse_item, itemid)
       resp <- dat_after_2009_rev %>% select(itemid) %>% pluck(itemid)
       dat_after_2009_rev <- dat_after_2009_rev %>% mutate(!!sym(itemid) := as.double(c(5:1)[resp]))
     }
@@ -79,12 +81,12 @@ dev.off()
 mirtCluster(4)
 #mirtCluster(remove = T)
 # FA----
+dat <- mat_after_2009_rev %>% as_tibble
 fafit_after_2009_rev <- mat_after_2009_rev %>% fa(nfactors = 4, missing = TRUE)
 fafit <- dat %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
-fafit$communality %>% sort %>% plot
+fafit$communality %>% sort %>% plot # comunality
 fafit$communalities
 
-dat <- mat_after_2009_rev %>% as_tibble
 write_csv(dat, path = "data/fadata.csv")
 dat %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x}) %>% cor %>% eigen %$% values %>% plot(type = "b",
                                                                                                       xlab = "component", ylab = "eigen value", 
@@ -166,7 +168,7 @@ remove_names <- numeric()
 for(j in 1:length(item_names)) if(pars2$ykn_2009[[j]] %>% .[1] < 0.1) remove_names <- c(remove_names, item_names[[j]])
 remove_names <- remove_names[-length(remove_names)]
 
-mgmodel3 <- mirt.model("F1 = 1-73
+mgmodel2 <- mirt.model("F1 = 1-73
                       PRIOR = (1-73, a1, lnorm,  0.0 , 2)
                       PRIOR = (1-73, d1, norm,  -1.0 , 3)
                       PRIOR = (1-73, d2, norm,  -0.5 , 3)
@@ -174,7 +176,7 @@ mgmodel3 <- mirt.model("F1 = 1-73
                       PRIOR = (1-73, d4, norm,   1.0 , 3)
                       ")
 
-fit_mg_after_2009_3 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% as.matrix %>% 
+fit_mg_after_2009_2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% as.matrix %>% 
   multipleGroup(model = mgmodel3, 
                 group = dat_after_2009_rev$SURVEY %>% factor(levels = faclev), 
                 invariance = const,
@@ -211,8 +213,6 @@ ggsave(filename = "graphics/mg_after_2009.png", width = 10, height = 7)
 # FA----
 fafit2 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% 
   map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x})  %>% fa(nfactors = 4)
-
-write_csv(dat, path = "data/fadata.csv")
 mat_after_2009_rev %>% as_tibble %>% select(-remove_names) %>% map_df(function(x){x[is.na(x)] <- mean(x, na.rm = T);x}) %>% cor %>% eigen %$% values %>% plot(type = "b",
                                                                                                        xlab = "component", ylab = "eigen value", 
                                                                                                        main = "scree plot")
@@ -228,13 +228,11 @@ View(non_scaling_item)
 non_scaling_item2 <- qtable_key %>% filter(common_id %in% remove_names_fa) %>% select(質問項目１, 質問項目２, 回答欄, 朝日項目名)
 View(non_scaling_item2)
 
-pars2 <- coef(fit_mg_after_2009_2, IRTpars = T)
-
 as.list(remove_names_fa) %>% map(~pluck(pars2$ykn_2009, .x))
 # 全体的に識別力が低く，困難度もかなり広がってしまっている項目がいくつか見受けられる。
 
 # さらに項目を削除して再推定。----
-mgmodel2 <- mirt.model("F1 = 1-53
+mgmodel3 <- mirt.model("F1 = 1-53
                       PRIOR = (1-53, a1, lnorm,  0.0 , 2)
                       PRIOR = (1-53, d1, norm,  -1.0 , 3)
                       PRIOR = (1-53, d2, norm,  -0.5 , 3)
@@ -242,7 +240,7 @@ mgmodel2 <- mirt.model("F1 = 1-53
                       PRIOR = (1-53, d4, norm,   1.0 , 3)
                       ")
 fit_mg_after_2009_3 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names, -remove_names_fa) %>% as.matrix %>% 
-  multipleGroup(model = mgmodel2, 
+  multipleGroup(model = mgmodel3, 
                 group = dat_after_2009_rev$SURVEY %>% factor(levels = faclev), 
                 invariance = const,
                 optimizer = "BFGS", #
@@ -252,3 +250,23 @@ fit_mg_after_2009_3 <- mat_after_2009_rev %>% as_tibble %>% select(-remove_names
                 technical = list(removeEmptyRows = TRUE, 
                                  NCYCLES = 1000,
                                  set.seed = 0204))
+
+load("data/fit_mg_after_2009_3.Rdata")
+
+# population distribution pars
+coef(fit_mg_after_2009_3) %>% 
+  map_df(~.x$GroupPars) %>% t %>% 
+  `colnames<-`(c("mean", "var")) %>% 
+  as.data.frame %>% rownames_to_column(var = "survey") %>% 
+  mutate(sd = sqrt(var))
+
+
+# population distribution
+plt <- plot(fit_mg_after_2009_3, type = "empiricalhist", npts = 21, pch = 20, lwd = 3)
+tbl <- tibble(prob = plt$panel.args[[1]]$y,
+              theta = plt$panel.args[[1]]$x, 
+              group = plt$panel.args.common$groups)
+tbl %>% ggplot(aes(x = theta, y = prob, group = group, colour = group))+
+  geom_line()+
+  facet_wrap(group~., ncol = 6)
+ggsave(filename = "graphics/mg_after_2009_2.png", width = 10, height = 7)
