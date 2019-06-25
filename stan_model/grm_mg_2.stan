@@ -36,7 +36,6 @@ model {
   for(j in 1:J){
     for(k in 1:(K[j]-1)){
       mu_d[j, k] ~ normal(0, 5);
-      // sigma_d[j, k] ~ cauchy(0, 5);
       d[j, k] ~ normal(mu_d[j, k], 1); // sigma_d[j, k]);
     }
   }
