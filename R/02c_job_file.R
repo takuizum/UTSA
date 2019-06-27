@@ -32,4 +32,21 @@ fa4fit_after_2009 <- mat_after_2009_rev %>%
        GenRandomPars = TRUE,
        technical = list(removeEmptyRows = TRUE, NCYCLES = 700))
 
-save(list = c("fa1fit_after_2009", "fa2fit_after_2009", "fa3fit_after_2009", "fa4fit_after_2009"), file = "data/fafit.Rdata")
+cat("FACTOR 5 \n")
+fa5fit_after_2009 <- mat_after_2009_rev %>% 
+  mirt(5, 
+       method = "MCEM",
+       GenRandomPars = TRUE,
+       technical = list(removeEmptyRows = TRUE, NCYCLES = 900))
+
+cat("FACTOR 6 \n")
+fa6fit_after_2009 <- mat_after_2009_rev %>% 
+  mirt(6, 
+       method = "MCEM",
+       GenRandomPars = TRUE,
+       technical = list(removeEmptyRows = TRUE, NCYCLES = 1100))
+
+
+
+save(list = c("fa1fit_after_2009", "fa2fit_after_2009", "fa3fit_after_2009", "fa4fit_after_2009", 
+              "fa5fit_after_2009", "fa6fit_after_2009"), file = "data/fafit.Rdata")
